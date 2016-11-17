@@ -107,3 +107,13 @@ Function Test-Directory {
             }
 }
 
+# führt einen einfachen Test mit offiziell veröffentlichten XML-Auftragsnummern von der VDDS 
+# Homepage durch
+Function Test-VDDS-Auftragsnummern {
+
+    $r=Invoke-WebRequest -Uri "http://www.vdds.de/content/de/auftragsnummern.php"
+    $l=$r.Content -split [char]10 | Select-String -AllMatches ">[0-9].*(-ZE-|-KB-|-KFO-).*[0-9]<"
+    $l=($l).Matches.Value.TrimStart(">").TrimEnd("<")
+    $l=$l -split "<br/>"
+    $l|select @{Name="Auftragsnummer";Expression={$_}},@{Name="Prüfziffer";Expression={Get-KZBVPrüfziffer -Auftragsnummer $_}},@{Name="Gültig";Expression={Test-KZBVPrüfziffer -Auftragsnummer $_}}
+}
