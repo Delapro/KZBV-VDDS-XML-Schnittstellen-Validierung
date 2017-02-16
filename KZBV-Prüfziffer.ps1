@@ -88,7 +88,7 @@ Function Test-Directory {
     )
 
     $f = Get-Item -Path "$($Directory)\*.xml"
-    $f | % {
+    $f | ForEach-Object {
                 If ($_.Name -match "-") {
                     $n = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
                     try {
@@ -115,5 +115,5 @@ Function Test-VDDS-Auftragsnummern {
     $l=$r.Content -split [char]10 | Select-String -AllMatches ">[0-9].*(-ZE-|-KB-|-KFO-).*[0-9]<"
     $l=($l).Matches.Value.TrimStart(">").TrimEnd("<")
     $l=$l -split "<br/>"
-    $l|select @{Name="Auftragsnummer";Expression={$_}},@{Name="Prüfziffer";Expression={Get-KZBVPrüfziffer -Auftragsnummer $_}},@{Name="Gültig";Expression={Test-KZBVPrüfziffer -Auftragsnummer $_}}
+    $l|Select-Object @{Name="Auftragsnummer";Expression={$_}},@{Name="Prüfziffer";Expression={Get-KZBVPrüfziffer -Auftragsnummer $_}},@{Name="Gültig";Expression={Test-KZBVPrüfziffer -Auftragsnummer $_}}
 }
