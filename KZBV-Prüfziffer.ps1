@@ -2,10 +2,10 @@
 #
 # erstellt von easy - innovative software
 #
-# zur Unterstützung der VDDS-Laborschnittstelle: http://www.vdds.de/content/de/laborschnittstelle.php
+# zur Unterstützung der VDDS-Laborschnittstelle: https://www.vdds.de/schnittstellen/labor/
 # http://www.kzbv.de/papierlose-abrechnung.98.de.html
 
-# ermittelt die zum übergebenen String passende Prüfziffer nach dem
+# ermittelt die zum übergebenen String passende Prüfziffer nach dem
 # Algorithmus der KZBV
 Function Invoke-KZBVPrüfzifferBerechnung {
     [CmdletBinding()]
@@ -111,7 +111,7 @@ Function Test-Directory {
 # Homepage durch
 Function Test-VDDS-Auftragsnummern {
 
-    $r=Invoke-WebRequest -Uri "http://www.vdds.de/content/de/auftragsnummern.php"
+    $r=Invoke-WebRequest -Uri "https://www.vdds.de/schnittstellen/labor/auftragsnummern/"
     $l=$r.Content -split [char]10 | Select-String -AllMatches ">[0-9].*(-ZE-|-KB-|-KFO-).*[0-9]<"
     $l=($l).Matches.Value.TrimStart(">").TrimEnd("<")
     $l=$l -split "<br/>"
