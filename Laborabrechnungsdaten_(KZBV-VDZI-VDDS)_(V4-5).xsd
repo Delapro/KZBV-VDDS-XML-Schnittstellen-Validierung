@@ -1,0 +1,669 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Zwischen der KZBV, dem VDZI und dem VDDS abzustimmendes XML-Schema zur
+Übermittlung der abrechnungsrelevanten Daten aus einer Laborrechnung per XML-Datei
+Die Version steht als documentation nach dem Kommentarblock im Schema
+Als Encoding ist nur UTF-8 mit oder ohne BOM zulässig.
+
+Am 01.02.2012 wie folgt erweitert:
+
+1. Die Felder NEM_Einzelpreis und NEM_Abrechnungseinheiten wurden optional gestellt. Beide Felder werden zukünftig
+   nicht mehr übermittelt.
+
+2. Es wurde die Positionsart "RBT" aufgenommen, damit unabhängig von der Möglichkeit der freien Preisgestaltung
+   auch die Angabe von gesonderten Rabattbeträgen möglich ist.
+
+3. Die maximalen Längen der Positionsfelder Einzelpreis und Menge wurden von 5 Stellen auf 6 Stellen erhöht.
+
+4. Alle numerischen Werte sind ganzzahlig ohne Vorzeichen anzugeben.
+
+   Für das Positionsfeld Menge gilt folgendes:
+
+   - Die Angabe ist in Tausendstel Einheiten (Milli) vorzunehmen.
+   - Der numerische Inhalt des Feldes darf nicht Null sein. Sofern nicht kostenwirksame Positionen übermittelt
+     werden müssen, ist im Feld Einzelpreis der Wert "0" anzugeben.
+
+
+Der verbindliche Aufbau der Auftragsnummer (AN) und der Umgang mit ihr wird folgendermaßen definiert:
+
+1. Erzeugung der AN durch die Praxis-Software des Zahnarztes
+
+   Die Praxis-Software des Zahnarztes stellt sicher, dass die AN im Kontext der Praxis-Software eindeutig ist.
+   Sie setzt sich aus den 6 Bestandteilen ...
+
+     - Standortnummer der Praxis (6 numerische Stellen)
+     - Patientenpseudonym
+     - Abrechnungsbereich (entweder "ZE", "KB" oder "KFO")
+     - Planidentifikation
+     - Laufende Nummer zum Plan
+     - Prüfziffer (siehe Beschreibung sowie C- und Delphi-Algorithmen) 
+
+   ... in diese Reihenfolge zusammen. Zur Trennung der einzelnen Bestandteile ist ausschließlich das "Minus"-Zeichen
+   zu verwenden. Für Patientenpseudonym, Planidentifikation und "Laufende Nummer zum Plan" gibt es folgende
+   Vorgaben zur Länge:
+
+     - die Angaben müssen vorhanden sein (Mindestlänge 1 Zeichen)
+     - die Gesamtlänge von 50 Zeichen der AN darf in Summe nicht überschritten werden
+
+
+   Die Standortnummer der Praxis setzt sich wie folgt zusammen:
+     - letzte beide Ziffern der Zahnarztnummer
+     - letzte beide Ziffern der Postleitzahl der Praxis
+     - sowie einem 2-stelligen numerischen Zähler (00-99) der Praxissoftware zusammen.
+
+   Das Patientenpseudonym und die Planidentifikation können Ziffern und Buchstaben (keine Umlaute) enthalten.
+   Die Laufende Nummer zum Plan und die Prüfziffer bestehen nur aus Ziffern.
+
+2. Verarbeitung der AN durch die Laborsoftware
+
+   -  Weicht die AN von der unter 1. beschriebenen Definition ab, muss diese AN nicht von der Laborsoftware
+      verarbeitet werden können.
+
+   -  Die manuelle Erfassung der AN  k a n n  durch die Überprüfung der Prüfziffer gemäß dem beigefügten Algorithmus
+      abgesichert werden (wird empfohlen).
+
+   -  Die AN wird als Präfixname für die zu liefernde XML-Datei verwendet.
+
+Ab Einsatz der Version 4 dürfen durch Praxissoftware nur noch Auftragsnummern in dem oben beschriebenen Format
+erzeugt werden.
+Es ist noch ein Stichtag zu definieren, bis zu dem in der Laborsoftware Auftragsnummern mit beliebigem Format
+verarbeitet werden müssen. Danach werden von Laborsoftware ausschließlich Datensätze mit dem oben beschriebenen
+Format akzeptiert
+
+
+Bezüglich der Mehrwertsteuergruppe wird auf folgendes hingewiesen:
+
+Es ist zulässig, dass mehrere MWST-Gruppen zu einem Mehrwertsteuersatz geliefert werden. Die Zwischensumme_netto
+darf dabei aber nicht negativ werden (<xs:minInclusive value="0"/>). Eine Zusammenfassung nur von Rabatten in
+einer Mehrwertsteuergruppe ist somit nicht zulässig.
+
+Das Auftreten der Mehrwertsteuergruppen ist derzeit auf 1 ... 3 festgelegt. Diese Festlegung ist willkürlich und sie
+wird in zukünftigen Versionen signifikant erweitert werden. Dies erfolgt nicht zur Version 4, weil die KZBV-
+Prüfmodule und einige PVS-Hersteller derzeit auf 3 Gruppen festgelegt sind. Die Schnittstelle soll so ausgebaut
+werden, dass sie für zukünftig mögliche Änderungen am Mehrwertsteuersystem vorbereitet ist.
+
+Die Attribute Laborsoftware, Laborsoftwarehersteller und Laborsoftwareversion sind optional.
+Durch sie wird es einfacher, im Problemfall den Kontakt zwischen Praxis- und Laborsoftwarehersteller
+herzustellen. Sie dürfen ausschließlich für diesen Zweck verwendet werden.
+Die Attribute wurden bewusst optional definiert, damit ein Fehlen zu keine zusätzlichen Probleme
+beim Einlesen der XML-Daten auslösen kann.
+
+Am 10.12.2013 wie folgt erweitert:
+Gebührennummernliste um die neuen Nummern gemäß BEL II - 2014 erweitert. 
+
+Am 08.12.2014 um die Gebührennummer 3805 erweitert
+
+Am 05.11.2021 um folgende Gebührennummern erweitert
+0015, 0025, 0115, 0125, 0205, 0217, 5010, 5020, 5100, 5110, 5200, 5210, 
+8085, 8500, 8511, 8512, 8513, 8514, 9335
+
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:altova="http://www.altova.com/xml-schema-extensions" elementFormDefault="qualified" attributeFormDefault="unqualified" version="4.5">
+	<xs:annotation>
+		<xs:documentation>Version 4.5 vom 05.11.2021</xs:documentation>
+	</xs:annotation>
+	<xs:element name="Laborabrechnung">
+		<xs:annotation>
+			<xs:documentation>Hauptelement</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Rechnung" nillable="false" minOccurs="1" maxOccurs="1">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="MWST-Gruppe" minOccurs="1" maxOccurs="3">
+								<xs:annotation>
+									<xs:documentation>Es ist zulässig, dass mehrere MWST-Gruppen zu einem Mehrwertsteuersatz geliefert werden.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Position" minOccurs="1" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:attribute name="Art" use="required">
+													<xs:annotation>
+														<xs:documentation>Darf ausschließlich die Werte "BEL" (BEL-Leistung), "NBL"(andere, nicht in der BEL enthaltene Leistung), "EDM" (Edelmetalle oder -legierungen), "MAT" (alle anderen Materialien) oder "RBT" (Rabatt) enthalten. Jede Art kann mehrmals auftreten.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="Positionsart"/>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="Nummer" use="optional">
+													<xs:annotation>
+														<xs:documentation>Ausschließlich anzugeben, wenn Art="BEL". Es sind ausschließlich die offiziellen BEL-Nummern zu verwenden. BEL-Nummern müssen vierstellig übermittelt werden. Das Feld wird nicht übermittelt, wenn Art ungleich BEL ist.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="BEL2"/>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="Beschreibung" use="required">
+													<xs:annotation>
+														<xs:documentation>wenn Art gleich "BEL", Kurztext gem. BEL; sonst eindeutige Leistungs- bzw. Materialbezeichnung </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:maxLength value="60"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="Einzelpreis" use="required">
+													<xs:annotation>
+														<xs:documentation>Netto-Einzelpreis je Mengen- oder Gewichtseinheit ganzzahlig, in Cent; bei nicht kostenwirksamen Positionen ist Einzelpreis gleich 0</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="6"/>
+															<xs:minInclusive value="0"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="Menge" use="required">
+													<xs:annotation>
+														<xs:documentation>- Angaben im Feld Menge erfolgen in Tausendstel (Milli). Gewichtsangaben (z.B. bei Art = "EDM") erfolgen dem entsprechend in Milligramm.
+- Der numerische Inhalt des Feldes darf nicht Null sein. Sofern nicht kostenwirksame Positionen angegeben werden sollen, ist beim Einzelpreis der Wert "0" anzugeben.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="6"/>
+															<xs:minExclusive value="0"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="Zwischensumme_netto" use="required">
+										<xs:annotation>
+											<xs:documentation>Summe der Netto-Gesamtpreise aller Positionen in dieser MWST-Gruppe wie in der Papierrechnung angegeben; ganzzahlig, in Cent</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="7"/>
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="Mehrwertsteuersatz" use="required">
+										<xs:annotation>
+											<xs:documentation>Ganzzahlig, in Promille</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="3"/>
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="Mehrwertsteuerbetrag" use="required">
+										<xs:annotation>
+											<xs:documentation>Mehrwertsteuerbetrag zu den Positionen in dieser MWST-Gruppe wie in der Papierrechnung angegeben; ganzzahlig, in Cent</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="6"/>
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="Laborsoftwarehersteller" use="optional">
+							<xs:annotation>
+								<xs:documentation>Name des Herstellers der Laborsoftware</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="50"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Laborsoftware" use="optional">
+							<xs:annotation>
+								<xs:documentation>Name der Laborsoftware</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="50"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Laborsoftwareversion" use="optional">
+							<xs:annotation>
+								<xs:documentation>Version der Laborsoftware</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="10"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Laborname" type="xs:string" use="required"/>
+						<xs:attribute name="Labor-ID" use="optional">
+							<xs:annotation>
+								<xs:documentation>Soll bis zur möglichen Einführung einer bundesweiten Kennzeichnung der Labore leer bleiben</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="20"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Herstellungsort" use="required">
+							<xs:annotation>
+								<xs:documentation>Entweder deutscher Ort (muss mit "D-" beginnen) oder Auslandsname</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="50"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Abrechnungsbereich" type="Abrechnungsbereich" use="required">
+							<xs:annotation>
+								<xs:documentation>Vertragsbereich (Bundesland) in dem sich das Labor - bei ausländischen Laboren die Zahnarztpraxis - befindet</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="NEM_Einzelpreis" use="optional">
+							<xs:annotation>
+								<xs:documentation>Wird nicht mehr ausgewertet. Wird nur noch aus Gründen der Abwärtskompatibilität im Schema belassen.</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="4"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="NEM_Abrechnungseinheiten" use="optional">
+							<xs:annotation>
+								<xs:documentation>Wird nicht mehr ausgewertet. Wird nur noch aus Gründen der Abwärtskompatibilität im Schema belassen.</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="2"/>
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Laborlieferdatum" type="xs:date" use="required"/>
+						<xs:attribute name="Laborrechnungsnummer" use="required">
+							<xs:annotation>
+								<xs:documentation>Abrechnungs-ID (Rechnungsnummer) des Labors wie auf der Papierrechnung angegeben</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="50"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Auftragsnummer" use="required">
+							<xs:annotation>
+								<xs:documentation>Eindeutige Nummer aus der Zahnarztpraxis. Siehe gelb umrandeten Extra-Kommentar im PDF-Dokument</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:maxLength value="50"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Gesamtbetrag_netto" use="required">
+							<xs:annotation>
+								<xs:documentation>Nettokosten aller Positionen wie in der Papierrechnung angegeben; ganzzahlig, in Cent</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="7"/>
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Mehrwertsteuer_gesamt" use="required">
+							<xs:annotation>
+								<xs:documentation>Summe der Mehrwertsteuerbeträge aus der vorhandenen MWST-Gruppen wie in der Papierrechnung angegeben; ganzzahlig, in Cent</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="6"/>
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="Gesamtbetrag_brutto" use="required">
+							<xs:annotation>
+								<xs:documentation>Gesamtbetrag_netto plus Mehrwertsteuer_gesamt wie in der Papierrechnung angegeben; ganzzahlig, in Cent</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="7"/>
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="Version" use="required">
+				<xs:annotation>
+					<xs:documentation>Version des XSD; Aktuelle Version: 4.0; erste Stelle: Hauptversion; zweite Stelle: Nebenversion; auch Änderungen nur an der Dokumentation erhöhen die zweite Stelle um 1</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="3"/>
+						<xs:minLength value="3"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:simpleType name="Abrechnungsbereich">
+		<xs:annotation>
+			<xs:documentation>Abrechnungsbereich der BEL-Leistungen</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="2"/>
+			<xs:maxLength value="3"/>
+			<xs:enumeration value="BE">
+				<xs:annotation>
+					<xs:documentation>Berlin</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="BBG">
+				<xs:annotation>
+					<xs:documentation>Land Brandenburg</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="BW">
+				<xs:annotation>
+					<xs:documentation>Baden-Württemberg</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="BY">
+				<xs:annotation>
+					<xs:documentation>Bayern</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="HB">
+				<xs:annotation>
+					<xs:documentation>Land Bremen</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="HH">
+				<xs:annotation>
+					<xs:documentation>Hamburg</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="HS">
+				<xs:annotation>
+					<xs:documentation>Hessen</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="MVO">
+				<xs:annotation>
+					<xs:documentation>Mecklenburg-Vorpommern</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="NR">
+				<xs:annotation>
+					<xs:documentation>Nordrhein</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="NS">
+				<xs:annotation>
+					<xs:documentation>Niedersachsen</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="RP">
+				<xs:annotation>
+					<xs:documentation>Rheinland-Pfalz</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="SAA">
+				<xs:annotation>
+					<xs:documentation>Saarland</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="SA">
+				<xs:annotation>
+					<xs:documentation>Sachsen</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="SAN">
+				<xs:annotation>
+					<xs:documentation>Sachsen-Anhalt</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="SH">
+				<xs:annotation>
+					<xs:documentation>Schleswig-Holstein</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="TH">
+				<xs:annotation>
+					<xs:documentation>Thüringen</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="WL">
+				<xs:annotation>
+					<xs:documentation>Westfalen-Lippe</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="Positionsart">
+		<xs:annotation>
+			<xs:documentation>Art der Rechnungsposition</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="3"/>
+			<xs:maxLength value="3"/>
+			<xs:enumeration value="BEL">
+				<xs:annotation>
+					<xs:documentation>BEL-Gebührennummer</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="NBL">
+				<xs:annotation>
+					<xs:documentation>Nicht-BEL-Laborleistung (z.B. BEB)</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="EDM">
+				<xs:annotation>
+					<xs:documentation>Edelmetall</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="MAT">
+				<xs:annotation>
+					<xs:documentation>Materialien</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="RBT">
+				<xs:annotation>
+					<xs:documentation>Rabatt</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="BEL2">
+		<xs:annotation>
+			<xs:documentation>Gültige Gebührennummern nach BEL 2</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="4"/>
+			<xs:maxLength value="4"/>
+			<xs:enumeration value="0010"/>
+			<xs:enumeration value="0015"/>
+			<xs:enumeration value="0018"/>
+			<xs:enumeration value="0021"/>
+			<xs:enumeration value="0022"/>
+			<xs:enumeration value="0023"/>
+			<xs:enumeration value="0024"/>
+			<xs:enumeration value="0025"/>
+			<xs:enumeration value="0030"/>
+			<xs:enumeration value="0051"/>
+			<xs:enumeration value="0052"/>
+			<xs:enumeration value="0053"/>
+			<xs:enumeration value="0054"/>
+			<xs:enumeration value="0055"/>
+			<xs:enumeration value="0060"/>
+			<xs:enumeration value="0070"/>
+			<xs:enumeration value="0111"/>
+			<xs:enumeration value="0112"/>
+			<xs:enumeration value="0115"/>
+			<xs:enumeration value="0120"/>
+			<xs:enumeration value="0125"/>
+			<xs:enumeration value="0128"/>
+			<xs:enumeration value="0130"/>
+			<xs:enumeration value="0201"/>
+			<xs:enumeration value="0202"/>
+			<xs:enumeration value="0205"/>
+			<xs:enumeration value="0211"/>
+			<xs:enumeration value="0212"/>
+			<xs:enumeration value="0213"/>
+			<xs:enumeration value="0214"/>
+			<xs:enumeration value="0215"/>
+			<xs:enumeration value="0216"/>
+			<xs:enumeration value="0217"/>
+			<xs:enumeration value="0218"/>
+			<xs:enumeration value="0220"/>
+			<xs:enumeration value="0228"/>
+			<xs:enumeration value="0230"/>
+			<xs:enumeration value="0240"/>
+			<xs:enumeration value="0310"/>
+			<xs:enumeration value="0320"/>
+			<xs:enumeration value="1013"/>
+			<xs:enumeration value="1021"/>
+			<xs:enumeration value="1022"/>
+			<xs:enumeration value="1023"/>
+			<xs:enumeration value="1024"/>
+			<xs:enumeration value="1026"/>
+			<xs:enumeration value="1028"/>
+			<xs:enumeration value="1031"/>
+			<xs:enumeration value="1032"/>
+			<xs:enumeration value="1033"/>
+			<xs:enumeration value="1040"/>
+			<xs:enumeration value="1050"/>
+			<xs:enumeration value="1100"/>
+			<xs:enumeration value="1200"/>
+			<xs:enumeration value="1201"/>
+			<xs:enumeration value="1331"/>
+			<xs:enumeration value="1341"/>
+			<xs:enumeration value="1343"/>
+			<xs:enumeration value="1347"/>
+			<xs:enumeration value="1349"/>
+			<xs:enumeration value="1360"/>
+			<xs:enumeration value="1370"/>
+			<xs:enumeration value="1500"/>
+			<xs:enumeration value="1550"/>
+			<xs:enumeration value="1600"/>
+			<xs:enumeration value="1610"/>
+			<xs:enumeration value="1620"/>
+			<xs:enumeration value="1628"/>
+			<xs:enumeration value="1630"/>
+			<xs:enumeration value="1638"/>
+			<xs:enumeration value="1640"/>
+			<xs:enumeration value="1650"/>
+			<xs:enumeration value="2010"/>
+			<xs:enumeration value="2021"/>
+			<xs:enumeration value="2025"/>
+			<xs:enumeration value="2026"/>
+			<xs:enumeration value="2027"/>
+			<xs:enumeration value="2028"/>
+			<xs:enumeration value="2031"/>
+			<xs:enumeration value="2041"/>
+			<xs:enumeration value="2050"/>
+			<xs:enumeration value="2081"/>
+			<xs:enumeration value="2082"/>
+			<xs:enumeration value="2083"/>
+			<xs:enumeration value="2100"/>
+			<xs:enumeration value="2110"/>
+			<xs:enumeration value="2120"/>
+			<xs:enumeration value="3010"/>
+			<xs:enumeration value="3018"/>
+			<xs:enumeration value="3020"/>
+			<xs:enumeration value="3028"/>
+			<xs:enumeration value="3030"/>
+			<xs:enumeration value="3410"/>
+			<xs:enumeration value="3610"/>
+			<xs:enumeration value="3618"/>
+			<xs:enumeration value="3620"/>
+			<xs:enumeration value="3628"/>
+			<xs:enumeration value="3800"/>
+			<xs:enumeration value="3805"/>
+			<xs:enumeration value="3810"/>
+			<xs:enumeration value="3821"/>
+			<xs:enumeration value="3822"/>
+			<xs:enumeration value="3830"/>
+			<xs:enumeration value="3840"/>
+			<xs:enumeration value="4010"/>
+			<xs:enumeration value="4020"/>
+			<xs:enumeration value="4030"/>
+			<xs:enumeration value="4040"/>
+			<xs:enumeration value="5010"/>
+			<xs:enumeration value="5020"/>
+			<xs:enumeration value="5100"/>
+			<xs:enumeration value="5110"/>
+			<xs:enumeration value="5200"/>
+			<xs:enumeration value="5210"/>
+			<xs:enumeration value="7010"/>
+			<xs:enumeration value="7020"/>
+			<xs:enumeration value="7030"/>
+			<xs:enumeration value="7040"/>
+			<xs:enumeration value="7050"/>
+			<xs:enumeration value="7100"/>
+			<xs:enumeration value="7110"/>
+			<xs:enumeration value="7121"/>
+			<xs:enumeration value="7122"/>
+			<xs:enumeration value="7200"/>
+			<xs:enumeration value="7210"/>
+			<xs:enumeration value="7220"/>
+			<xs:enumeration value="7300"/>
+			<xs:enumeration value="7310"/>
+			<xs:enumeration value="7320"/>
+			<xs:enumeration value="7330"/>
+			<xs:enumeration value="7340"/>
+			<xs:enumeration value="7400"/>
+			<xs:enumeration value="7410"/>
+			<xs:enumeration value="7420"/>
+			<xs:enumeration value="7430"/>
+			<xs:enumeration value="7440"/>
+			<xs:enumeration value="7500"/>
+			<xs:enumeration value="7510"/>
+			<xs:enumeration value="8010"/>
+			<xs:enumeration value="8018"/>
+			<xs:enumeration value="8021"/>
+			<xs:enumeration value="8022"/>
+			<xs:enumeration value="8023"/>
+			<xs:enumeration value="8024"/>
+			<xs:enumeration value="8025"/>
+			<xs:enumeration value="8026"/>
+			<xs:enumeration value="8027"/>
+			<xs:enumeration value="8030"/>
+			<xs:enumeration value="8040"/>
+			<xs:enumeration value="8060"/>
+			<xs:enumeration value="8070"/>
+			<xs:enumeration value="8080"/>
+			<xs:enumeration value="8085"/>
+			<xs:enumeration value="8088"/>
+			<xs:enumeration value="8090"/>
+			<xs:enumeration value="8098"/>
+			<xs:enumeration value="8100"/>
+			<xs:enumeration value="8108"/>
+			<xs:enumeration value="8130"/>
+			<xs:enumeration value="8200"/>
+			<xs:enumeration value="8208"/>
+			<xs:enumeration value="8500"/>
+			<xs:enumeration value="8511"/>
+			<xs:enumeration value="8512"/>
+			<xs:enumeration value="8513"/>
+			<xs:enumeration value="8514"/>
+			<xs:enumeration value="8610"/>
+			<xs:enumeration value="8620"/>
+			<xs:enumeration value="8630"/>
+			<xs:enumeration value="8640"/>
+			<xs:enumeration value="8700"/>
+			<xs:enumeration value="9330"/>
+			<xs:enumeration value="9335"/>
+			<xs:enumeration value="9338"/>
+			<xs:enumeration value="9700"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
