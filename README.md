@@ -1,6 +1,6 @@
 # KZBV-Prüfziffern Validierung
 
-Mittels der KZBV-Prüfziffer-Funktionen kann man KZBV-XML-Auftragsnummern auf deren Richtigkeit prüfen, die Prüfziffer ermitteln usw.
+Mittels der KZBV-Prüfziffer-Funktionen kann man KZBV-XML-Auftragsnummern auf deren Richtigkeit prüfen, die Prüfziffer ermitteln usw. Als Grundlage diente der Algorithmus aus der Vorgabe der KZBV: Datei "pz_aufnr.c", "C"-Quelltext zur Berechnung der Pruefziffer fuer die Auftragsnummer, vom 20.07.2011.
 
 ## Anwendung
 
