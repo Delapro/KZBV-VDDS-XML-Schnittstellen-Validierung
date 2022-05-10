@@ -114,6 +114,10 @@ Function Test-VDDS-Auftragsnummern {
     $r=Invoke-WebRequest -Uri "https://www.vdds.de/schnittstellen/labor/auftragsnummern/"
     $l=$r.Content -split [char]10 | Select-String -AllMatches ">[0-9].*(-ZE-|-KB-|-KFO-).*[0-9]<"
     $l=($l).Matches.Value.TrimStart(">").TrimEnd("<")
-    $l=$l -split "<br/>"
+    If ($l -match '<br />') {
+        $l=$l -split '<br />'
+    } else {
+        $l=$l -split '<br/>'
+    }
     $l|Select-Object @{Name="Auftragsnummer";Expression={$_}},@{Name="Prüfziffer";Expression={Get-KZBVPrüfziffer -Auftragsnummer $_}},@{Name="Gültig";Expression={Test-KZBVPrüfziffer -Auftragsnummer $_}}
 }
