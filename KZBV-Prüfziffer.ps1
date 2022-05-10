@@ -123,3 +123,36 @@ Function Test-VDDS-Auftragsnummern {
     # TODO: siehe oben TODO
     $l|Select-Object @{Name="Auftragsnummer";Expression={$_}},@{Name="Prüfziffer";Expression={Get-KZBVPrüfziffer -Auftragsnummer $_}},@{Name="Gültig";Expression={Test-KZBVPrüfziffer -Auftragsnummer $_}}
 }
+
+# ermittelt die Bestandteile der Auftragsnummer nach folgender Struktur: https://github.com/Delapro/KZBV-VDDS-XML-Schnittstellen-Validierung/blob/27eeae177b0c47cbac0a811882f09d600fb84ec2/Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-5).xsd#L27
+Function Get-KZBVAuftragsnummerProperties {
+    [CmdletBinding()]
+    Param(
+        [String]$Auftragsnummer
+    )
+    
+    <#
+    Der verbindliche Aufbau der Auftragsnummer (AN) und der Umgang mit ihr wird folgendermaßen definiert:
+    1. Erzeugung der AN durch die Praxis-Software des Zahnarztes
+       Die Praxis-Software des Zahnarztes stellt sicher, dass die AN im Kontext der Praxis-Software eindeutig ist.
+       Sie setzt sich aus den 6 Bestandteilen ...
+         - Standortnummer der Praxis (6 numerische Stellen)
+         - Patientenpseudonym
+         - Abrechnungsbereich (entweder "ZE", "KB" oder "KFO")
+         - Planidentifikation
+         - Laufende Nummer zum Plan
+         - Prüfziffer (siehe Beschreibung sowie C- und Delphi-Algorithmen) 
+       ... in diese Reihenfolge zusammen. Zur Trennung der einzelnen Bestandteile ist ausschließlich das "Minus"-Zeichen
+       zu verwenden. Für Patientenpseudonym, Planidentifikation und "Laufende Nummer zum Plan" gibt es folgende
+       Vorgaben zur Länge:
+         - die Angaben müssen vorhanden sein (Mindestlänge 1 Zeichen)
+         - die Gesamtlänge von 50 Zeichen der AN darf in Summe nicht überschritten werden
+       Die Standortnummer der Praxis setzt sich wie folgt zusammen:
+         - letzte beide Ziffern der Zahnarztnummer
+         - letzte beide Ziffern der Postleitzahl der Praxis
+         - sowie einem 2-stelligen numerischen Zähler (00-99) der Praxissoftware zusammen.
+       Das Patientenpseudonym und die Planidentifikation können Ziffern und Buchstaben (keine Umlaute) enthalten.
+       Die Laufende Nummer zum Plan und die Prüfziffer bestehen nur aus Ziffern.
+    #>
+
+}
