@@ -112,6 +112,7 @@ Function Test-Directory {
 Function Test-VDDS-Auftragsnummern {
 
     $r=Invoke-WebRequest -Uri "https://www.vdds.de/schnittstellen/labor/auftragsnummern/"
+    # TODO: mit der neuen VDDS-Seite klappt das ermitteln der Auftragsnummern nicht mehr!
     $l=$r.Content -split [char]10 | Select-String -AllMatches ">[0-9].*(-ZE-|-KB-|-KFO-).*[0-9]<"
     $l=($l).Matches.Value.TrimStart(">").TrimEnd("<")
     If ($l -match '<br />') {
@@ -119,5 +120,6 @@ Function Test-VDDS-Auftragsnummern {
     } else {
         $l=$l -split '<br/>'
     }
+    # TODO: siehe oben TODO
     $l|Select-Object @{Name="Auftragsnummer";Expression={$_}},@{Name="Prüfziffer";Expression={Get-KZBVPrüfziffer -Auftragsnummer $_}},@{Name="Gültig";Expression={Test-KZBVPrüfziffer -Auftragsnummer $_}}
 }
