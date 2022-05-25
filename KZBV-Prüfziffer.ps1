@@ -149,11 +149,11 @@ Function Get-KZBVAuftragsnummerProperties {
     #>
 
     $m= $Auftragsnummer | Select-String -AllMatches "(?'Standortnummer'[0-9]{6,6})-(?'Patientenpseudonym'[0-9|a-z]+)-(?'Abrechnungsbereich'(ze|kb|kfo))-(?'Planidentifikation'[0-9|a-z]+)-(?'Plannummer'[0-9]+)-(?'Pruefziffer'[0-9])"
-    $h = $m.Matches.Groups| % {$d=@{}} {$d.Add($_.Name, $_.Value)} {$d}
-    # noch Aufräumarbeiten durchführen
+    $h = $m.Matches.Groups| ForEach-Object {$d=@{}} {$d.Add($_.Name, $_.Value)} {$d}
+    # noch Aufräumarbeiten durchführen, wegen der 0 und 1 ist ein direktes überführen in ein Objekt nicht möglich
     $h.Remove('1')
     $h.Add('Auftragsnummer', $h.Item('0'))
     $h.Remove('0')
-
+    # nun gehts
     New-Object PSObject -Property $h
 }
