@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zwischen der KZBV, dem VDZI und dem VDDS abzustimmendes XML-Schema vom 29.02.2012 zur /-->
+<!-- Übermittlung der abrechnungsrelevanten Daten aus einer Laborrechnung per XML-Datei /-->
+<!-- Als Encoding ist nur UTF-8 ohne BOM zulässig. /-->
+<!--
+****************************************************************************************************************************** 
+***                                                                                                                        ***
+***  Am 01.02.2012 wie folgt erweitert:                                                                                    ***
+***                                                                                                                        ***
+***  1. Die Felder NEM_Einzelpreis und NEM_Abrechnungseinheiten wurden optional gestellt. Beide Felder werden zukünftig    ***
+***     nicht mehr übermittelt.                                                                                            ***
+***                                                                                                                        ***
+***  2. Es wurde die Positionsart "RBT" aufgenommen, damit unabhängig von der Möglichkeit der freien Preisgestaltung       ***
+***     auch die Angabe von gesonderten Rabattbeträgen möglich ist.                                                        ***
+***                                                                                                                        ***
+***  3. Die Länge des Positionsfeldes Einzelpreis wurde von 5 Stellen auf 6 Stellen geändert.                              ***
+***                                                                                                                        ***
+***  4. Alle numerischen Werte sind ganzzahlig ohne Vorzeichen anzugeben.                                                  ***
+***                                                                                                                        ***
+***     Für das Positionsfeld Menge gilt folgendes:                                                                        ***
+***                                                                                                                        ***
+***     - Die Angabe ist in Tausendstel Einheiten (Milli) vorzunehmen.                                                     ***
+***     - Der numerische Inhalt des Feldes darf nicht Null sein. Sofern nicht kostenwirksame Positionen übermittelt        ***
+***       werden müssen, ist im Feld Einzelpreis der Wert "0" anzugeben.                                                   ***
+***                                                                                                                        ***
+***                                                                                                                        ***
+***  Der verbindliche Aufbau der Auftragsnummer (AN) und der Umgang mit ihr wird folgendermaßen definiert:                 ***
+***                                                                                                                        ***
+***  1. Erzeugung der AN durch die Praxis-Software des Zahnarztes                                                          ***
+***                                                                                                                        ***
+***     Die Praxis-Software des Zahnarztes stellt sicher, dass die AN im Kontext der Praxis-Software eindeutig ist.        ***
+***     Sie setzt sich aus den 6 Bestandteilen ...                                                                         *** 
+***                                                                                                                        ***
+***       - Standortnummer der Praxis (6 numerische Stellen)                                                               ***
+***       - Patientenpseudonym                                                                                             ***
+***       - Abrechnungsbereich (entweder "ZE", "KB" oder "KFO")                                                            ***
+***       - Planidentifikation                                                                                             ***
+***       - Laufende Nummer zum Plan                                                                                       ***
+***       - Prüfziffer (siehe Beschreibung sowie C- und Delphi-Algorithmen)                                                ***
+***                                                                                                                        ***
+***     ... in diese Reihenfolge zusammen. Zur Trennung der einzelnen Bestandteile ist ausschließlich das "Minus"-Zeichen  ***
+***     zu verwenden.                                                                                                      ***
+***                                                                                                                        ***
+***     Die Standortnummer der Praxis setzt sich wie folgt zusammen:                                                       ***
+**        - letzte beide Ziffern der Zahnarztnummer                                                                        ***
+***       - letzte beide Ziffern der Postleitzahl der Praxis                                                               ***
+***       - sowie einem 2-stelligen numerischen Zähler (00-99) der Praxissoftware zusammen.                                ***
+***                                                                                                                        ***
+***     Das Patientenpseudonym und die Planidentifikation können Ziffern und Buchstaben (keine Umlaute) enthalten.         ***
+***     Die Laufende Nummer zum Plan und die Prüfziffer bestehen nur aus Ziffern.                                          ***
+***                                                                                                                        ***
+***  2. Verarbeitung der AN durch die Laborsoftware                                                                        ***
+***                                                                                                                        ***
+***     -  Weicht die AN von der unter 1. beschriebenen Definition ab, muss diese AN nicht von der Laborsoftware           ***
+***        verarbeitet werden können.                                                                                      ***
+***                                                                                                                        ***
+***     -  Die manuelle Erfassung der AN  k a n n  durch die Überprüfung der Prüfziffer gemäß dem beigefügten Algorithmus  ***
+***        abgesichert werden (wird empfohlen).                                                                            ***
+***                                                                                                                        ***
+***     -  Die AN wird als Präfixname für die zu liefernde XML-Datei verwendet.                                            ***
+***                                                                                                                        ***
+***  Ab Einsatz der Version 4 dürfen durch Praxissoftware nur noch Auftragsnummern in dem oben beschriebenen Format        ***
+***  erzeugt werden.                                                                                                       ***
+***  Es ist noch ein Stichtag zu definieren, bis zu dem in der Laborsoftware Auftragsnummern mit beliebigem Format         ***
+***  verarbeitet werden müssen. Danach werden von Laborsoftware ausschließlich Datensätze mit dem oben beschriebenen       ***
+***  Format akzeptiert                                                                                                     ***
+***                                                                                                                        ***
+******************************************************************************************************************************
+/-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:annotation>
+    <xs:documentation>Version 4.0 vom 21.05.2012</xs:documentation>
+  </xs:annotation>
+  <xs:element name="Laborabrechnung">
+    <xs:annotation>
+      <xs:documentation>Hauptelement</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Rechnung" nillable="false" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="MWST-Gruppe" minOccurs="1" maxOccurs="3">
+                <xs:annotation>
+                  <xs:documentation>Es ist zulässig, dass mehrere MWST-Gruppen zu einem Mehrwertsteuersatz geliefert werden</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Position" minOccurs="1" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:attribute name="Art" type="Positionsart" use="required">
+                          <xs:annotation>
+                            <xs:documentation>Darf ausschließlich die Werte "BEL" (BEL-Leistung), "NBL"(andere, nicht in der BEL enthaltene Leistung), "EDM" (Edelmetalle oder -legierungen), "MAT" (alle anderen Materialien) oder "RBT" (Rabatt) enthalten. Jede Art kann mehrmals auftreten.</xs:documentation>
+                          </xs:annotation>
+                        </xs:attribute>
+                        <xs:attribute name="Nummer" use="optional">
+                          <xs:annotation>
+                            <xs:documentation>Ausschließlich anzugeben, wenn Art="BEL". Es sind ausschließlich die offiziellen BEL-Nummern zu verwenden. BEL-Nummern müssen vierstellig übermittelt werden. Das Feld wird nicht übermittelt, wenn Art ungleich BEL ist.</xs:documentation>
+                          </xs:annotation>
+                          <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                              <xs:minLength value="4"/>
+                              <xs:maxLength value="4"/>
+                              <xs:pattern value="[0-9]{4,4}"/>
+                            </xs:restriction>
+                          </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="Beschreibung" use="required">
+                          <xs:annotation>
+                            <xs:documentation>wenn Art gleich "BEL", Kurztext gem. BEL; sonst eindeutige Leistungs- bzw. Materialbezeichnung </xs:documentation>
+                          </xs:annotation>
+                          <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                              <xs:maxLength value="50"/>
+                            </xs:restriction>
+                          </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="Einzelpreis" use="required">
+                          <xs:annotation>
+                            <xs:documentation>Netto-Einzelpreis je Mengen- oder Gewichtseinheit ganzzahlig, in Cent; bei nicht kostenwirksamen Positionen ist Einzelpreis gleich 0</xs:documentation>
+                          </xs:annotation>
+                          <xs:simpleType>
+                            <xs:restriction base="xs:integer">
+                              <xs:totalDigits value="6"/>
+                              <xs:minInclusive value="0"/>
+                            </xs:restriction>
+                          </xs:simpleType>
+                        </xs:attribute>
+                        <xs:attribute name="Menge" use="required">
+                          <xs:annotation>
+                            <xs:documentation>- Angaben im Feld Menge erfolgen in Tausendstel (Milli). Gewichtsangaben (z.B. bei Art = "EDM") erfolgen dem entsprechend in Milligramm.
+- Der numerische Inhalt des Feldes darf nicht Null sein. Sofern nicht kostenwirksame Positionen angegeben werden sollen, ist beim Einzelpreis der Wert "0" anzugeben.
+- Im Falle von Rabattangaben (Art = "RBT") ist die Menge mit negativem Vorzeichen anzugeben.</xs:documentation>
+                          </xs:annotation>
+                          <xs:simpleType>
+                            <xs:restriction base="xs:integer">
+                              <xs:totalDigits value="6"/>
+                            </xs:restriction>
+                          </xs:simpleType>
+                        </xs:attribute>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="Zwischensumme_netto" use="required">
+                    <xs:annotation>
+                      <xs:documentation>Summe der Netto-Gesamtpreise aller Positionen in dieser MWST-Gruppe wie in der Papierrechnung angegeben; ganzzahlig, in Cent</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                      <xs:restriction base="xs:integer">
+                        <xs:totalDigits value="7"/>
+                        <xs:minInclusive value="0"/>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                  <xs:attribute name="Mehrwertsteuersatz" use="required">
+                    <xs:annotation>
+                      <xs:documentation>Ganzzahlig, in Promille</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                      <xs:restriction base="xs:integer">
+                        <xs:totalDigits value="3"/>
+                        <xs:minInclusive value="0"/>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                  <xs:attribute name="Mehrwertsteuerbetrag" use="required">
+                    <xs:annotation>
+                      <xs:documentation>Mehrwertsteuerbetrag zu den Positionen in dieser MWST-Gruppe wie in der Papierrechnung angegeben; ganzzahlig, in Cent</xs:documentation>
+                    </xs:annotation>
+                    <xs:simpleType>
+                      <xs:restriction base="xs:integer">
+                        <xs:totalDigits value="6"/>
+                        <xs:minInclusive value="0"/>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="Laborsoftwarehersteller" use="optional">
+              <xs:annotation>
+                <xs:documentation>Name des Herstellers der Laborsoftware</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:maxLength value="50"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Laborsoftware" use="optional">
+              <xs:annotation>
+                <xs:documentation>Name der Laborsoftware</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:maxLength value="50"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Laborsoftwareversion" use="optional">
+              <xs:annotation>
+                <xs:documentation>Version der Laborsoftware</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:maxLength value="10"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Laborname" type="xs:string" use="required"/>
+            <xs:attribute name="Labor-ID" use="optional">
+              <xs:annotation>
+                <xs:documentation>Soll bis zur möglichen Einführung einer bundesweiten Kennzeichnung der Labore leer bleiben</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:maxLength value="20"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Herstellungsort" use="required">
+              <xs:annotation>
+                <xs:documentation>Entweder deutscher Ort (muss mit "D-" beginnen) oder Auslandsname</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:maxLength value="50"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Abrechnungsbereich" type="Abrechnungsbereich" use="required">
+              <xs:annotation>
+                <xs:documentation>Vertragsbereich (Bundesland) in dem sich das Labor - bei ausländischen Laboren die Zahnarztpraxis - befindet</xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="NEM_Einzelpreis" use="optional">
+              <xs:annotation>
+                <xs:documentation>Wird nicht mehr ausgewertet. Wird nur noch aus Gründen der Abwärtskompatibilität im Schema belassen.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                  <xs:totalDigits value="4"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="NEM_Abrechnungseinheiten" use="optional">
+              <xs:annotation>
+                <xs:documentation>Wird nicht mehr ausgewertet. Wird nur noch aus Gründen der Abwärtskompatibilität im Schema belassen.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                  <xs:totalDigits value="2"/>
+                  <xs:minInclusive value="0"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Laborlieferdatum" type="xs:date" use="required"/>
+            <xs:attribute name="Laborrechnungsnummer" use="required">
+              <xs:annotation>
+                <xs:documentation>Abrechnungs-ID (Rechnungsnummer) des Labors wie auf der Papierrechnung angegeben</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:maxLength value="50"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Auftragsnummer" use="required">
+              <xs:annotation>
+                <xs:documentation>Eindeutige Nummer aus der Zahnarztpraxis. Siehe gelb umrandeten Extra-Kommentar im PDF-Dokument</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:maxLength value="50"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Gesamtbetrag_netto" use="required">
+              <xs:annotation>
+                <xs:documentation>Nettokosten aller Positionen wie in der Papierrechnung angegeben; ganzzahlig, in Cent</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                  <xs:totalDigits value="7"/>
+                  <xs:minInclusive value="0"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Mehrwertsteuer_gesamt" use="required">
+              <xs:annotation>
+                <xs:documentation>Summe der Mehrwertsteuerbeträge aus der vorhandenen MWST-Gruppen wie in der Papierrechnung angegeben; ganzzahlig, in Cent</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                  <xs:totalDigits value="6"/>
+                  <xs:minInclusive value="0"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="Gesamtbetrag_brutto" use="required">
+              <xs:annotation>
+                <xs:documentation>Gesamtbetrag_netto plus Mehrwertsteuer_gesamt wie in der Papierrechnung angegeben; ganzzahlig, in Cent</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:integer">
+                  <xs:totalDigits value="7"/>
+                  <xs:minInclusive value="0"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="Version" use="required">
+        <xs:annotation>
+          <xs:documentation>Version des XSD; Aktuelle Version: 4.0; erste Stelle: Hauptversion; zweite Stelle: Nebenversion; auch Änderungen nur an der Dokumentation erhöhen die zweite Stelle um 1</xs:documentation>
+        </xs:annotation>
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:maxLength value="3"/>
+            <xs:minLength value="3"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="Abrechnungsbereich">
+    <xs:annotation>
+      <xs:documentation>Abrechnungsbereich der BEL-Leistungen</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="BE"/>
+      <xs:enumeration value="BBG"/>
+      <xs:enumeration value="BW"/>
+      <xs:enumeration value="BY"/>
+      <xs:enumeration value="HB"/>
+      <xs:enumeration value="HH"/>
+      <xs:enumeration value="HS"/>
+      <xs:enumeration value="MVO"/>
+      <xs:enumeration value="NR"/>
+      <xs:enumeration value="NS"/>
+      <xs:enumeration value="RP"/>
+      <xs:enumeration value="SAA"/>
+      <xs:enumeration value="SA"/>
+      <xs:enumeration value="SAN"/>
+      <xs:enumeration value="SH"/>
+      <xs:enumeration value="TH"/>
+      <xs:enumeration value="WL"/>
+			 <!--BE  = Berlin
+			     BBG = Land Brandenburg
+			     BW  = Baden-Württemberg
+			     BY  = Bayern
+			     HB  = Land Bremen
+			     HH  = Hamburg
+			     HS  = Hessen
+			     MVO = Mecklenburg-Vorpommern
+			     NR  = Nordrhein
+			     NS  = Niedersachsen
+			     RP  = Rheinland-Pfalz
+			     SAA = Saarland
+			     SA  = Sachsen
+			     SAN = Sachsen-Anhalt
+			     SH  = Schleswig-Holstein
+			     TH  = Thüringen
+			     WL  = Westfalen-Lippe-->
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="Positionsart">
+    <xs:annotation>
+      <xs:documentation>Art der Rechnungsposition</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="BEL"/>
+      <xs:enumeration value="NBL"/>
+      <xs:enumeration value="EDM"/>
+      <xs:enumeration value="MAT"/>
+      <xs:enumeration value="RBT"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
