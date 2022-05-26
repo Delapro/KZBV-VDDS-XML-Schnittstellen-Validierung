@@ -117,7 +117,7 @@ Function Test-VDDS-Auftragsnummern {
     $l|Select-Object @{Name="Auftragsnummer";Expression={$_}},@{Name="Prüfziffer";Expression={Get-KZBVPrüfziffer -Auftragsnummer $_}},@{Name="Gültig";Expression={Test-KZBVPrüfziffer -Auftragsnummer $_}}
 }
 
-# ermittelt die Bestandteile der Auftragsnummer nach folgender Struktur: https://github.com/Delapro/KZBV-VDDS-XML-Schnittstellen-Validierung/blob/27eeae177b0c47cbac0a811882f09d600fb84ec2/Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-5).xsd#L27
+# ermittelt die Bestandteile der Auftragsnummer nach folgender Struktur: https://github.com/Delapro/KZBV-VDDS-XML-Schnittstellen-Validierung/blob/08e020633232ba1479db5ade7cec084b11819ae2/XML-Schemata/Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-5).xsd#L27
 Function Get-KZBVAuftragsnummerProperties {
     [CmdletBinding()]
     Param(
