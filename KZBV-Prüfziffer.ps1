@@ -157,3 +157,65 @@ Function Get-KZBVAuftragsnummerProperties {
     # nun gehts
     New-Object PSObject -Property $h
 }
+
+# ermittelt die passende Schemadatei zu einer XML-Auftragsdatei
+Function Get-SchemaFile {
+    [CmdletBinding()]
+    Param(
+        [xml]$xml
+    )
+
+    $KZBVSchema = ''
+    If ($xml.Laborabrechnung.noNamespaceSchemaLocation) {
+        $KZBVSchema = Resolve-Path ".\XML-Schemata\$($xml.Laborabrechnung.noNamespaceSchemaLocation)"
+    }
+
+    If (-Not (Test-Path $KZBVSchema)) {
+        # evtl. manuelle Umsetzung
+        switch ($xml.Laborabrechnung.noNamespaceSchemaLocation) {
+            'Laborabrechnungsdaten_(KZBV-VDZI)_2011-06-27.xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDZI)_2011-06-27.xsd'}
+            'Laborabrechnungsdaten_(KZBV-VDZI-VDDS).xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDZI-VDDS).xsd'}
+            'Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-2).xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-2).xsd'}
+            'Laborabrechnungsdaten_(KZBV-VDDS)_(V4-3).xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDDS)_(V4-3).xsd'}
+            'Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-4).xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-4).xsd'}
+#          'Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-5).xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-5).xsd'}
+            Default {
+                        $KZBVSchema = ''
+                        Write-Error "unbekanntes Schema: $($x.Laborabrechnung.noNamespaceSchemaLocation)"
+                    }
+        }
+    }
+    $KZBVSchema
+}
+
+# prüft ob die übergebene XML-Datei valide ist und keine Schemafehler enthält
+Function Check-Schema {
+    [CmdletBinding()]
+    Param(
+        [String]$File
+    )
+    
+    $xml = [xml](Get-Content $File)
+    $schema = Get-SchemaFile -xml $xml
+    If ($schema) {
+        Write-Verbose "Prüfe auf $schema"
+
+        $xmlReaderSettings = New-Object System.Xml.XmlReaderSettings
+        $xmlReaderSettings.ValidationType = [System.Xml.ValidationType]::Schema
+        $xmlReaderSettings.ValidationFlags = $xmlReaderSettings.ValidationFlags -bxor [System.Xml.Schema.XmlSchemaValidationFlags]::ReportValidationWarnings
+        $script:isValid = $true;
+        [System.Xml.Schema.ValidationEventHandler] $onValidationError = {
+            param(
+                  $sender,
+                  $eventArgs
+            )
+           
+            $script:isValid = $false;
+            Write-Host -ForegroundColor Red "Error: $($eventArgs.Message)";
+        }
+        $xml.Schemas.Add($null, $schema) | Out-Null
+        $xml.Validate($onValidationError)
+        $script:isValid
+
+    }
+}
