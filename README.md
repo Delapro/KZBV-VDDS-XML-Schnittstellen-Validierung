@@ -145,15 +145,18 @@ Ladet die ZIP-Testdateien mit den XML-Beispieldateien von der VDDS-Seite herunte
 If (-Not (Test-Path .\TestDaten -Type Container)) {New-Item Testdaten -Type Directory}
 Get-VDDS-XMLAuftragsdateiBeispielLinks|% {Start-BitsTransfer $_;Expand-Archive (($_ -split '/')[-1]) -DestinationPath .\Testdaten -Force}
 
-# Ausgabe der verwendeten Schemata der Beispieldateien:
-dir *.xml| % {$x=[xml](Get-Content $_); [PSCustomObject]@{Schema=$x.Laborabrechnung.noNamespaceSchemaLocation;File=$_.Name}}
+# Ausgabe der verwendeten Schemata und Version der Beispieldateien:
+dir *.xml| % {$x=[xml](Get-Content $_); [PSCustomObject]@{Schema=$x.Laborabrechnung.noNamespaceSchemaLocation;File=$_.Name;Version=$x.Laborabrechnung.Version}}
 
-    Schema                                            File
-    ------                                            ----
-    Laborabrechnungsdaten_(KZBV-VDZI)_4.xsd           018401-1000-KB-2411001-2-3.XML
-    Laborabrechnungsdaten_(KZBV-VDZI)_4.xsd           018401-19000-KB-240200000-30001-5.XML
-    Laborabrechnungsdaten_(KZBV-VDZI)_4.xsd           018401-19000-KFO-240400000-20001-6.XML
-    Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-2).xsd 018401-19000-ZE-240300001-30002-0.xml
+    Schema                                            File                                   Version
+    ------                                            ----                                   -------
+    Laborabrechnungsdaten_(KZBV-VDZI)_4.xsd           018401-1000-KB-2411001-2-3.XML         4.0
+    Laborabrechnungsdaten_(KZBV-VDZI)_4.xsd           018401-19000-KB-240200000-30001-5.XML  4.0
+    Laborabrechnungsdaten_(KZBV-VDZI)_4.xsd           018401-19000-KFO-240400000-20001-6.XML 4.0
+    Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-2).xsd 018401-19000-ZE-240300001-30002-0.xml  4.2
+    Laborabrechnungsdaten_(KZBV-VDZI)_4.xsd           018401-5-ZE-2416176-2-4.XML            4.0
+    Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-2).xsd 023501-100G0101-KB-1475-3-1.xml        4.2
+                                                      06-300799-1-31-KBR-176-1-2.xml         4.2
     ...
 
 # Ausgabe der verwendeten Schemata:
@@ -167,4 +170,3 @@ dir *.xml| % {$x=[xml](Get-Content $_); [PSCustomObject]@{Schema=$x.Laborabrechn
     Laborabrechnungsdaten_(KZBV-VDZI-VDDS) (V4-2).xsd    14
     Laborabrechnungsdaten_(KZBV-VDZI)_(V4-2).xsd          9
 ```
-
