@@ -136,3 +136,13 @@ Patientenpseudonym : 600
 # Oder alle Testnummern in Tabelle ausgeben:
 Test-VDDS-Auftragsnummern| Get-KZBVAuftragsnummerProperties| ft
 ```
+
+### Herunterladen der Beispiel-XML-Dateien
+
+Ladet die ZIP-Testdateien mit den XML-Beispieldateien von der VDDS-Seite herunter und entpackt diese in das Verzeichnis Testdaten.
+
+```Powershell
+If (-Not (Test-Path .\TestDaten -Type Container)) {New-Item Testdaten -Type Directory}
+Get-VDDS-XMLAuftragsdateiBeispielLinks|% {Start-BitsTransfer $_;Expand-Archive (($_ -split '/')[-1]) -DestinationPath .\Testdaten -Force}
+```
+
