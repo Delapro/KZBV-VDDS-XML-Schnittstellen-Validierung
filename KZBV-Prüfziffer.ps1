@@ -132,9 +132,13 @@ Function Get-VDDS-XMLAuftragsdateiBeispielLinks {
 Function Get-KZBVAuftragsnummerProperties {
     [CmdletBinding()]
     Param(
+        [Parameter(Mandatory,ValueFromPipeline)]
         [String]$Auftragsnummer
     )
     
+    Begin {}
+
+    Process{
     <#
     Der verbindliche Aufbau der Auftragsnummer (AN) und der Umgang mit ihr wird folgendermaßen definiert:
     1. Erzeugung der AN durch die Praxis-Software des Zahnarztes
@@ -167,6 +171,7 @@ Function Get-KZBVAuftragsnummerProperties {
     $h.Remove('0')
     # nun gehts
     New-Object PSObject -Property $h
+    }
 }
 
 # ermittelt die passende Schemadatei zu einer XML-Auftragsdatei

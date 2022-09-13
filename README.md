@@ -118,3 +118,21 @@ Auftragsnummer                Prüfziffer Gültig
 
 Was hier gleich auffällt, dass alle korrekt sind niemand hat ungültige Nummern zur Verfügung gestellt.
 
+### Zerlegung einer XML-Auftragsnummer
+
+Mittels der Funktion ```Get-KZBVAuftragsnummerProperties``` kann man eine XML-Auftragsnummer in seine Bestandteile zerlegen:
+
+```Powershell
+Get-KZBVAuftragsnummerProperties -Auftragsnummer 289202-600-ZE-8040-30-3
+
+Auftragsnummer     : 289202-600-ZE-8040-30-3
+Plannummer         : 30
+Abrechnungsbereich : ZE
+Standortnummer     : 289202
+Planidentifikation : 8040
+Pruefziffer        : 3
+Patientenpseudonym : 600
+
+# Oder alle Testnummern in Tabelle ausgeben:
+Test-VDDS-Auftragsnummern| Get-KZBVAuftragsnummerProperties| ft
+```
