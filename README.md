@@ -144,5 +144,7 @@ Ladet die ZIP-Testdateien mit den XML-Beispieldateien von der VDDS-Seite herunte
 ```Powershell
 If (-Not (Test-Path .\TestDaten -Type Container)) {New-Item Testdaten -Type Directory}
 Get-VDDS-XMLAuftragsdateiBeispielLinks|% {Start-BitsTransfer $_;Expand-Archive (($_ -split '/')[-1]) -DestinationPath .\Testdaten -Force}
-```
 
+# Ausgabe der verwendeten Schemata der Beispieldateien:
+dir *.xml| % {$x=[xml](Get-Content $_); [PSCustomObject]@{Schema=$x.Laborabrechnung.noNamespaceSchemaLocation;File=$_.Name}}
+```
