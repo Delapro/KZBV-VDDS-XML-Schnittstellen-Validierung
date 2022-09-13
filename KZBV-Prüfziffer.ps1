@@ -189,7 +189,7 @@ Function Get-SchemaFile {
             'Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-2).xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-2).xsd'}
             'Laborabrechnungsdaten_(KZBV-VDDS)_(V4-3).xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDDS)_(V4-3).xsd'}
             'Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-4).xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-4).xsd'}
-#          'Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-5).xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-5).xsd'}
+            'Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-5).xsd' {$KZBVSchema = '.\XML-Schemata\Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-5).xsd'}
             Default {
                         $KZBVSchema = ''
                         Write-Error "unbekanntes Schema: $($x.Laborabrechnung.noNamespaceSchemaLocation)"
