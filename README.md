@@ -170,3 +170,16 @@ dir *.xml| % {$x=[xml](Get-Content $_); [PSCustomObject]@{Schema=$x.Laborabrechn
     Laborabrechnungsdaten_(KZBV-VDZI-VDDS) (V4-2).xsd    14
     Laborabrechnungsdaten_(KZBV-VDZI)_(V4-2).xsd          9
 ```
+
+### Ermitteln der gültigen BEL2-Nummern aus einer Schemadatei
+
+```Get-Bel2Positionen``` gibt eine Liste von gültigen BEL2-Nummern zurück. Funktioniert aber erst ab Schema-Version 4.2.
+
+```Powershell
+Get-Bel2Positionen '.\Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-5).xsd' | select -First 5
+0010
+0015
+0018
+0021
+0022
+```

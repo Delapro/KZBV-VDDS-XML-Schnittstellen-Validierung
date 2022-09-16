@@ -251,3 +251,21 @@ Function Invoke-XmlSchemaDownload {
     $schemas | % {Start-BitsTransfer -Source "https://raw.githubusercontent.com/Delapro/KZBV-VDDS-XML-Schnittstellen-Validierung/master/XML-Schemata/$_"}
 
 }
+
+# Gibt die BEL2-Nummern eines Schemas zurück, funktioniert aber erst ab Version 4.2 der Schemadateien, ansonsten wird $null zurückgegeben
+Function Get-Bel2Positionen {
+    [CmdletBinding()]
+    Param(
+        [String]$File
+    )
+
+    If (Test-Path $File) {
+        Write-Verbose $File
+        $sx=[xml](Get-Content $File)
+        If ($null -ne $sx) {
+            Write-Verbose "Version: $($sx.schema.version)"
+            $bel2Element=$sx.schema.simpleType | Where-Object name -eq "BEL2"
+            ($bel2Element.restriction.enumeration).value # nur die Nummern zurückgeben
+        }
+    }
+}
