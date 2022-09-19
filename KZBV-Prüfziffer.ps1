@@ -239,9 +239,10 @@ Function Check-Schema {
 # ladet die Schemata von Github ins aktuelle Verzeichnis herunter
 Function Invoke-XmlSchemaDownload {
 
+    # die Dateinamen hier orientieren sich an den Dateinamen der xsd-Dateien vom
+    # VDDS-Prüfungstool.
     $schemas = @(
-         'Laborabrechnungsdaten_(KZBV-VDZI)_2011-06-27.xsd'
-        ,'Laborabrechnungsdaten_(KZBV-VDZI-VDDS).xsd'
+         'Laborabrechnungsdaten_(KZBV-VDZI-VDDS).xsd'
         ,'Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-2).xsd'
         ,'Laborabrechnungsdaten_(KZBV-VDDS)_(V4-3).xsd'
         ,'Laborabrechnungsdaten_(KZBV-VDZI-VDDS)_(V4-4).xsd'
