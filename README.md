@@ -20,6 +20,9 @@ Test-KZBVPrüfziffer -Auftragsnummer 37-9999-1-79-ZE-6-32-0
 
 # kürzeste, gültige XML-Auftragsnummer:
 Test-KZBVPrüfziffer -Auftragsnummer 0
+
+# kurzeste, gültige XML-Auftragsnummer nach aktuell gültigem Schema:
+Test-KZBVPrüfziffer -Auftragsnummer 123456-1-ZE-1-1-0
 ```
 
 ### Ermitteln der XML-Auftragsnummer-Prüfziffer
