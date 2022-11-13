@@ -69,14 +69,17 @@ Function Get-KZBVPrüfziffer {
 Function Test-KZBVPrüfziffer {
    [CmdletBinding()]
     Param(
+        [Parameter(ValueFromPipeline)]
         [String]$Auftragsnummer
     )
 
-    $Prüfziffer = Invoke-KZBVPrüfzifferBerechnung -Auftragsnummer $Auftragsnummer.Substring(0, $Auftragsnummer.Length -1)
-    If ($Prüfziffer -eq (Get-KZBVPrüfziffer -Auftragsnummer $Auftragsnummer)) {
-        $true
-    } else {
-        $false
+    Process {
+        $Prüfziffer = Invoke-KZBVPrüfzifferBerechnung -Auftragsnummer $Auftragsnummer.Substring(0, $Auftragsnummer.Length -1)
+        If ($Prüfziffer -eq (Get-KZBVPrüfziffer -Auftragsnummer $Auftragsnummer)) {
+            $true
+        } else {
+            $false
+        }
     }
 }
 
